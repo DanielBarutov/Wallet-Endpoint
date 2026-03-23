@@ -1,0 +1,11 @@
+fastapi
+sqlalchemy
+psycopg
+psycopg2-binary
+pytest
+uuid
+python-dotenv
+gunicorn
+pydantic
+dotenv
+alembic
