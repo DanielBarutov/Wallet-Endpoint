@@ -3,9 +3,11 @@ sqlalchemy
 psycopg
 psycopg2-binary
 pytest
+httpx
 uuid
 python-dotenv
 gunicorn
+uvicorn
 pydantic
 dotenv
 alembic
