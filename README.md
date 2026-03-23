@@ -1,4 +1,4 @@
-# Wallet-Enpoint
+# Wallet-Endpoint
 
 ## Тестовое задание
 
@@ -6,10 +6,18 @@
 
 ##
 
+Скачивание:
+
+```
+git clone https://github.com/DanielBarutov/Wallet-Endpoint.git
+cd Wallet-Endpoint
+
+```
+
 Запуск:
 
 ```
-docker compose up -d
+docker compose up -d --build
 ```
 
 Ручной запуск тестирования (при запущенном контейнере):
@@ -19,3 +27,9 @@ docker compose exec wallet-endpoint pytest
 ```
 
 При запуске тестирования создаются тестовые данные в тестовой базе данных(SQLite для тестов).
+
+Swagger:
+
+```
+http://localhost:8000/docs
+```
