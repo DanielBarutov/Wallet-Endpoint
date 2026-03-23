@@ -3,6 +3,7 @@ from sqlalchemy import Column, Integer, String, Float, DateTime
 from datetime import datetime
 import uuid
 
+
 class Wallet(Base):
     __tablename__ = "wallet"
     id = Column(Integer, primary_key=True)
