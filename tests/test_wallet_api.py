@@ -102,3 +102,19 @@ def test_create_operation_returns_404_for_missing_wallet():
 
     assert response.status_code == 404
     assert response.json() == {"detail": "Waalet not found"}
+
+
+def test_create_operation_twice_res():
+    client.post("/api/v1/wallets/", json={"balance": 50.0})
+    wallets = client.get("/api/v1/wallets").json()
+    wallet_uuid = wallets[0]["wallet_uuid"]
+    attemp = 0
+    while attemp != 5:
+        response = client.post(
+            f"/api/v1/wallets/{wallet_uuid}/operation",
+            params={"operation_type": "WITHDRAW", "amount": 5.0},
+        )
+        attemp += 1
+        assert response.status_code == 200
+    balance_response = client.get(f"/api/v1/wallet/{wallet_uuid}")
+    assert balance_response.json() == {"balance": 25.0}
