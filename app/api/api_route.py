@@ -38,12 +38,12 @@ router = APIRouter(prefix="/api/v1")
 @router.get("/wallets")
 def get_wallets(db: Session = Depends(get_db)):
     wallet = db.execute(select(Wallet)).scalars().all()
-    if wallet != None:
+    if wallet != []:
         result = [WalletRead(wallet_uuid=wallet.wallet_uuid,
                              balance=wallet.balance) for wallet in wallet]
         return result
     else:
-        return HTTPException(404, "Wallets не обнаружено!")
+        raise HTTPException(404, "Wallets не обнаружено!")
 
 
 @router.post("/wallets/")
@@ -54,7 +54,7 @@ def create_wallet(wallet: WalletCreate, db: Session = Depends(get_db)):
         db.commit()
         return {"message": "Wallet успешно создан"}
     except Exception as e:
-        return {"message": f"Wallet не создан! Ошибка: {e}"}
+        raise HTTPException(500, f"Wallet не создан! Ошибка: {e}")
 
 
 @router.get("/wallet/{wallet_uuid}")
@@ -64,7 +64,7 @@ def get_wallet_balance(wallet_uuid: str, db: Session = Depends(get_db)):
     if wallet != None:
         return {"balance": wallet.balance}
     else:
-        return HTTPException(404, "Wallet по этому UUID не обнаружен!")
+        raise HTTPException(404, "Wallet по этому UUID не обнаружен!")
 
 
 @router.post("/wallets/{wallet_uuid}/operation")
@@ -74,12 +74,13 @@ def create_operation(wallet_uuid: str, operation_type: OperationType, amount: fl
     if not wallet:
         raise HTTPException(404, "Waalet not found")
     if operation_type == "DEPOSIT":
-        wallet.balance += amount
+        wallet.balance = Wallet.balance + amount
     if operation_type == "WITHDRAW":
-        wallet.balance -= amount
+        wallet.balance = Wallet.balance - amount
     try:
         db.commit()
         db.refresh(wallet)
         return {"message": f"Баланс успешно {'пополнен' if operation_type == 'DEPOSIT' else 'списан'} на {amount} у.е.. Текущий баланс: {wallet.balance}"}
     except Exception as e:
-        return {"message": f"Пополнение баланса не произошло! Ошибка: {e}"}
+        raise HTTPException(
+            500, f"Пополнение баланса не произошло! Ошибка: {e}")
