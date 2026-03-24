@@ -1,37 +1,14 @@
 
-from enum import Enum
 from fastapi import APIRouter, HTTPException
-from sqlalchemy import text, select
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 from app.db.db import get_db
 from fastapi import Depends
-from pydantic import BaseModel
 from app.model.wallet import Wallet
 import uuid
-
-# Pydantic models
-
-
-class WalletCreate(BaseModel):
-    balance: float
-
-
-class WalletRead(BaseModel):
-    wallet_uuid: str
-    balance: float
-
-
-class WalletsRead(BaseModel):
-    wallets: list[WalletRead]
-
-
-class OperationType(str, Enum):
-    deposit = "DEPOSIT"
-    withdraw = "WITHDRAW"
+from app.type.wallet_type import WalletCreate, WalletRead, OperationType
 
 # Routes
-
-
 router = APIRouter(prefix="/api/v1")
 
 
