@@ -1,12 +1,17 @@
 
 from fastapi import APIRouter, HTTPException
-from sqlalchemy import select
 from sqlalchemy.orm import Session
 from app.db.db import get_db
 from fastapi import Depends
-from app.model.wallet import Wallet
-import uuid
-from app.type.wallet_type import WalletCreate, WalletRead, OperationType
+
+from app.shemas.wallet_shemas import OperationType
+from app.exceptions import WalletNotFound, NegativeBalanceError, OperationBalanceError
+from app.service.wallet_service import (
+    check_balance_service,
+    create_wallets_service,
+    get_wallets_service,
+    create_operation_service
+)
 
 # Routes
 router = APIRouter(prefix="/api/v1")
@@ -14,50 +19,43 @@ router = APIRouter(prefix="/api/v1")
 
 @router.get("/wallets")
 def get_wallets(db: Session = Depends(get_db)):
-    wallet = db.execute(select(Wallet)).scalars().all()
-    if wallet != []:
-        result = [WalletRead(wallet_uuid=wallet.wallet_uuid,
-                             balance=wallet.balance) for wallet in wallet]
-        return result
-    else:
+    try:
+        return get_wallets_service(db)
+    except WalletNotFound:
         raise HTTPException(404, "Wallets не обнаружено!")
+    except Exception as e:
+        raise HTTPException(500, f"Неизвестная ошибка: {e}")
 
 
 @router.post("/wallets/")
-def create_wallet(wallet: WalletCreate, db: Session = Depends(get_db)):
-    new_wallet = Wallet(wallet_uuid=str(uuid.uuid4()), balance=wallet.balance)
+def create_wallet(start_balance: float, db: Session = Depends(get_db)):
     try:
-        db.add(new_wallet)
-        db.commit()
-        return {"message": "Wallet успешно создан"}
+        return create_wallets_service(start_balance, db)
+    except NegativeBalanceError:
+        raise HTTPException(400, "Начальный баланс не может быть ниже нуля!")
     except Exception as e:
-        raise HTTPException(500, f"Wallet не создан! Ошибка: {e}")
+        raise HTTPException(500, f"Неизвестная ошибка: {e}")
 
 
 @router.get("/wallet/{wallet_uuid}")
 def get_wallet_balance(wallet_uuid: str, db: Session = Depends(get_db)):
-    wallet = db.execute(select(Wallet).where(
-        Wallet.wallet_uuid == wallet_uuid)).scalar()
-    if wallet != None:
-        return {"balance": wallet.balance}
-    else:
+    try:
+        return check_balance_service(wallet_uuid, db)
+    except WalletNotFound:
         raise HTTPException(404, "Wallet по этому UUID не обнаружен!")
+    except Exception as e:
+        raise HTTPException(500, f"Неизвестная ошибка: {e}")
 
 
 @router.post("/wallets/{wallet_uuid}/operation")
 def create_operation(wallet_uuid: str, operation_type: OperationType, amount: float, db: Session = Depends(get_db)):
-    wallet = db.execute(select(Wallet).where(
-        Wallet.wallet_uuid == wallet_uuid)).scalar()
-    if not wallet:
-        raise HTTPException(404, "Waalet not found")
-    if operation_type == "DEPOSIT":
-        wallet.balance = Wallet.balance + amount
-    if operation_type == "WITHDRAW":
-        wallet.balance = Wallet.balance - amount
     try:
-        db.commit()
-        db.refresh(wallet)
-        return {"message": f"Баланс успешно {'пополнен' if operation_type == 'DEPOSIT' else 'списан'} на {amount} у.е.. Текущий баланс: {wallet.balance}"}
+        return create_operation_service(wallet_uuid, operation_type, amount, db)
+    except OperationBalanceError:
+        raise HTTPException(
+            400, "Неверная операция с балансом, возможно вывод больше чем баланс, или пополнение отрицательной суммой")
+    except WalletNotFound:
+        raise HTTPException(404, f"Кошелек с UUID: {wallet_uuid} не найден!")
     except Exception as e:
         raise HTTPException(
             500, f"Пополнение баланса не произошло! Ошибка: {e}")

@@ -33,28 +33,32 @@ def setup_function():
 
 
 def test_create_wallet():
-    response = client.post("/api/v1/wallets/", json={"balance": 100.0})
+    start_balance = 100.0
+    response = client.post(
+        f"/api/v1/wallets/?start_balance={start_balance}")
 
     assert response.status_code == 200
-    assert response.json()["message"] == "Wallet успешно создан"
+    uid = response.json()["uuid_wallet"]
+    assert response.json()[
+        "message"] == f"Wallet c UUID: {uid[0]} и стартовым балансом: {start_balance}р. успешно создан"
 
 
 def test_get_wallets_returns_created_wallet():
-    create_response = client.post("/api/v1/wallets/", json={"balance": 150.0})
+    create_response = client.post("/api/v1/wallets/?start_balance=150")
     assert create_response.status_code == 200
+    uid = create_response.json()["uuid_wallet"]
 
     response = client.get("/api/v1/wallets")
-
     assert response.status_code == 200
     data = response.json()
     assert isinstance(data, list)
     assert len(data) == 1
+    assert data[0]["wallet_uuid"] == uid[0]
     assert data[0]["balance"] == 150.0
-    assert "wallet_uuid" in data[0]
 
 
 def test_get_wallet_balance():
-    client.post("/api/v1/wallets/", json={"balance": 75.0})
+    client.post("/api/v1/wallets/?start_balance=75")
     wallets = client.get("/api/v1/wallets").json()
     wallet_uuid = wallets[0]["wallet_uuid"]
 
@@ -65,7 +69,7 @@ def test_get_wallet_balance():
 
 
 def test_create_operation_deposit():
-    client.post("/api/v1/wallets/", json={"balance": 50.0})
+    client.post("/api/v1/wallets/?start_balance=50")
     wallets = client.get("/api/v1/wallets").json()
     wallet_uuid = wallets[0]["wallet_uuid"]
 
@@ -80,7 +84,7 @@ def test_create_operation_deposit():
 
 
 def test_create_operation_withdraw():
-    client.post("/api/v1/wallets/", json={"balance": 50.0})
+    client.post("/api/v1/wallets/?start_balance=50")
     wallets = client.get("/api/v1/wallets").json()
     wallet_uuid = wallets[0]["wallet_uuid"]
 
@@ -95,17 +99,19 @@ def test_create_operation_withdraw():
 
 
 def test_create_operation_returns_404_for_missing_wallet():
+    wallet_uuid = "unknown_wallet"
     response = client.post(
-        "/api/v1/wallets/unknown-wallet/operation",
+        f"/api/v1/wallets/{wallet_uuid}/operation",
         params={"operation_type": "DEPOSIT", "amount": 10.0},
     )
 
     assert response.status_code == 404
-    assert response.json() == {"detail": "Waalet not found"}
+    assert response.json() == {
+        "detail": f"Кошелек с UUID: {wallet_uuid} не найден!"}
 
 
 def test_create_operation_twice_res():
-    client.post("/api/v1/wallets/", json={"balance": 50.0})
+    client.post("/api/v1/wallets/?start_balance=50")
     wallets = client.get("/api/v1/wallets").json()
     wallet_uuid = wallets[0]["wallet_uuid"]
     attemp = 0
