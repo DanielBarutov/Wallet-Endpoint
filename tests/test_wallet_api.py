@@ -40,7 +40,7 @@ def test_create_wallet():
     assert response.status_code == 200
     uid = response.json()["uuid_wallet"]
     assert response.json()[
-        "message"] == f"Wallet c UUID: {uid[0]} и стартовым балансом: {start_balance}р. успешно создан"
+        "message"] == f"Wallet c UUID: {str(uid)} и стартовым балансом: {start_balance}р. успешно создан"
 
 
 def test_get_wallets_returns_created_wallet():
@@ -53,7 +53,7 @@ def test_get_wallets_returns_created_wallet():
     data = response.json()
     assert isinstance(data, list)
     assert len(data) == 1
-    assert data[0]["wallet_uuid"] == uid[0]
+    assert data[0]["wallet_uuid"] == str(uid)
     assert data[0]["balance"] == 150.0
 
 

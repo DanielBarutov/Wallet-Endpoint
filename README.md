@@ -8,7 +8,7 @@
 
 Скачивание:
 
-```
+```bash
 git clone https://github.com/DanielBarutov/Wallet-Endpoint.git
 cd Wallet-Endpoint
 
@@ -16,13 +16,13 @@ cd Wallet-Endpoint
 
 Запуск:
 
-```
+```bash
 docker compose up -d --build
 ```
 
 Ручной запуск тестирования (при запущенном контейнере):
 
-```
+```bash
 docker compose exec wallet-endpoint pytest
 ```
 
@@ -33,3 +33,11 @@ Swagger:
 ```
 http://localhost:8000/docs
 ```
+
+> > **P.S.**
+> >
+> > > Сейчас в коде есть ошибка утечки исключений, для теста и более простого логирования это не учитывается также как и отсутствия .env в gitignore
+
+> > > Логичнее было бы выводить просто 500, без "e", а сам "e" и другие классы от Exception логировать. (Сделать все через внешний handler)
+
+> > > Таким образом получили бы чистый ручки в API и избавились бы от утечки данных.

@@ -30,7 +30,7 @@ def get_wallet(wallet_uuid: str, db: Callable) -> None:
 
 
 def add_balance(wallet: Wallet, amount: float, db: Callable) -> None:
-    wallet.balance = Wallet.balance + amount
+    wallet.balance = wallet.balance + amount
     try:
         db.commit()
         db.refresh(wallet)
@@ -39,7 +39,7 @@ def add_balance(wallet: Wallet, amount: float, db: Callable) -> None:
 
 
 def remove_balance(wallet: Wallet, amount: float, db: Callable) -> None:
-    wallet.balance = Wallet.balance - amount
+    wallet.balance = wallet.balance - amount
     try:
         db.commit()
         db.refresh(wallet)

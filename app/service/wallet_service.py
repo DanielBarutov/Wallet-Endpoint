@@ -23,8 +23,8 @@ def create_wallets_service(start_balance: WalletCreate, db: Callable) -> dict:
     new_wallet = Wallet(wallet_uuid=uid, balance=start_balance)
     add_wallet(new_wallet, db)
     return {"message": f"Wallet c UUID: {uid} и стартовым балансом: {start_balance}р. успешно создан",
-            "uuid_wallet": {uid},
-            "start_balance": {start_balance}
+            "uuid_wallet": uid,
+            "start_balance": start_balance
             }
 
 
@@ -44,6 +44,8 @@ def create_operation_service(wallet_uuid: str, operation_type: OperationType, am
             raise OperationBalanceError
         add_balance(wallet, amount, db)
     if operation_type == "WITHDRAW":
+        if wallet.balance <= 0:
+            raise OperationBalanceError
         if wallet.balance < amount:
             raise OperationBalanceError
         remove_balance(wallet, amount, db)
