@@ -1,6 +1,6 @@
 # Wallet-Endpoint
 
-## Тестовое задание
+## Тестовое задание (SOLID Version)
 
 Тех. задание: [Ссылка на тестовое задание](https://docs.google.com/document/d/1hEnCQnhljJ-pAwg7coi31J_3A05ctPcysIdkIuHXRqs/edit?tab=t.0#heading=h.pxfv6y3ftfw9)
 
